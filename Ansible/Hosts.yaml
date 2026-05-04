@@ -1,0 +1,10 @@
+all:
+  hosts:
+    Main-server:
+      ansible_host: 100.112.208.1
+    remote-server-1:
+      ansible_host: 100.123.176.70
+    remote-server-2:
+      ansible_host: 100.105.158.114
+  vars:
+    ansible_user: ansible
