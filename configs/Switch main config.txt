@@ -1,0 +1,90 @@
+#Préparation
+en
+conf t
+ip routing
+banner motd #prohibited access denied#
+hostname Switch_HQ
+enable secret topologie123
+line console 0
+password topology123
+login
+exit
+line vty 0 4
+password topology 123
+login
+exit
+
+
+
+
+#Préparation des vlan et leurs IPs
+#vlan 1 (DB)
+conf t
+vlan 1
+name DB
+exit
+interface gigabitethernet0/1
+switchport mode access
+switchport access vlan 1
+no sh
+exit
+interface vlan 1
+ip address 10.1.32.1 255.255.224.0
+ip helper-address 10.1.64.2
+no sh
+
+
+#vlan 2 (servers)
+conf t
+vlan 2
+name servers
+exit
+interface range gigabitethernet1/1-3
+switchport mode access
+switchport access vlan 2
+no sh
+exit
+interface vlan 2
+ip address 10.1.64.1 255.255.224.0
+no sh
+exit
+
+
+#vlan 3 (Admins)
+conf t
+vlan 3
+name Admins
+exit
+interface range gigabitethernet0/2-3
+switchport mode access
+switchport access vlan 3
+no sh
+exit
+interface gigabitethernet1/0
+switchport mode access
+switchport access vlan 3
+no sh
+exit
+interface vlan 3
+ip address 10.1.96.1 255.255.224.0
+ip helper-address 10.1.64.2
+no sh
+exit
+
+
+
+#interface e0 (linking to the router)
+conf t
+interface gigabitethernet0/0
+no switchport
+ip address 10.1.0.2 255.255.255.252
+no sh
+
+
+
+#global default-route
+end
+conf t
+ip route 0.0.0.0 0.0.0.0 10.1.0.1
+end
+wr

@@ -1,0 +1,65 @@
+#Step 1 — Install MariaDB
+apk update && apk add mariadb mariadb-client
+
+
+#Step 2 — Initialize and start MariaDB
+mysql_install_db --user=mysql --datadir=/var/lib/mysql
+rc-service mariadb start
+rc-update add mariadb
+
+
+#Step 3 — Secure the installation
+mysql_secure_installation
+
+#it will ask some questions
+#Enter current password for root: ← just press Enter (no password yet)
+#Set root password? [Y/n]: Y
+#New password: topology123
+#Re-enter password: topology123
+#Remove anonymous users? [Y/n]: Y
+#Disallow root login remotely? [Y/n]: Y
+#Remove test database? [Y/n]: Y
+#Reload privilege tables? [Y/n]: Y
+
+
+
+
+#Step 4 — Create the database and ATM user
+mysql -u root -p << 'EOF'
+CREATE DATABASE bank;
+
+USE bank;
+
+CREATE TABLE accounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_number VARCHAR(20) NOT NULL,
+    owner_name VARCHAR(50) NOT NULL,
+    balance DECIMAL(10,2) NOT NULL
+);
+
+INSERT INTO accounts (account_number, owner_name, balance) VALUES
+('ACC001', 'John Doe', 5000.00),
+('ACC002', 'Jane Smith', 3200.50),
+('ACC003', 'Bob Johnson', 12000.75);
+
+CREATE USER 'atmuser'@'10.2.64.%' IDENTIFIED BY 'atm123';
+CREATE USER 'atmuser'@'10.2.96.%' IDENTIFIED BY 'atm123';
+GRANT SELECT ON bank.* TO 'atmuser'@'10.2.64.%';
+GRANT SELECT ON bank.* TO 'atmuser'@'10.2.96.%';
+FLUSH PRIVILEGES;
+EOF
+
+
+
+
+#Step 5 — Allow remote connections
+cat >> /etc/mysql/my.cnf << 'EOF'
+[mysqld]
+bind-address=10.1.32.2
+EOF
+
+
+
+#step6-Restart
+ip route add default via 10.1.32.1
+rc-service mariadb restart

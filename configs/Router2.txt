@@ -1,0 +1,63 @@
+#Préparation
+en
+conf t
+hostname Router_Branch
+enable secret topologie123
+line console 0
+password topology123
+login
+exit
+line vty 0 4
+password topology123
+login
+exit
+banner motd #prohibited access denied#
+
+
+
+#e0 (linked to switch main)
+end
+conf t
+interface gigabitethernet0/0
+ip address 10.2.0.1 255.255.255.252
+no sh
+exit
+
+
+
+#e0 (linked to e0 firewall)
+end
+conf t
+interface gigabitethernet0/8
+ip address 192.168.100.6 255.255.255.252
+no sh
+exit
+
+
+
+
+#e9 (linked to cloud1)
+end
+conf t
+interface gigabitethernet0/9
+ip address 100.100.100.200 255.255.255.255
+no sh
+exit
+
+
+#routing
+end
+conf t
+
+# Branch subnets (through firewall)
+ip route 10.2.32.0 255.255.224.0 10.2.0.2
+ip route 10.2.64.0 255.255.224.0 10.2.0.2
+ip route 10.2.96.0 255.255.224.0 10.2.0.2
+
+# HQ subnets (through switch)
+ip route 10.1.32.0 255.255.224.0 192.168.100.5
+ip route 10.1.64.0 255.255.224.0 192.168.100.5
+ip route 10.1.96.0 255.255.224.0 192.168.100.5
+
+
+wr

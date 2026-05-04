@@ -1,0 +1,42 @@
+#Step 1 — Install vsftpd
+apk update && apk add vsftpd
+
+
+
+#Step 2 — Write the vsftpd config
+cat > /etc/vsftpd/vsftpd.conf << 'EOF'
+# Basic settings
+listen=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+
+# Passive mode ports
+pasv_min_port=30000
+pasv_max_port=31000
+pasv_address=10.1.64.4
+
+# Security
+chroot_local_user=YES
+allow_writeable_chroot=YES
+
+# Logging
+xferlog_enable=YES
+xferlog_file=/var/log/vsftpd.log
+EOF
+
+
+
+
+#Step 3 — Create the FTP directory and a user
+mkdir -p /srv/ftp
+adduser ftpuser
+#write the password : topology123
+chown ftpuser:ftpuser /srv/ftp
+
+
+
+#Step 4 — Start vsftpd
+rc-service vsftpd start
+rc-update add vsftpd
