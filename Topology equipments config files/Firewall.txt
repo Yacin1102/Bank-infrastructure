@@ -1,0 +1,111 @@
+#Firewall (ASA) — Step 1: Basic setup
+en
+conf t
+hostname Firewall_1
+enable secret topologie123
+line console 0
+password topology123
+login
+exit
+line vty 0 4
+password topology123
+login
+exit
+banner motd !prohibited access denied!
+
+
+#Step 2 — Configure the interfaces
+interface gigabitethernet0/0
+nameif hq-side
+security-level 50
+ip address 192.168.100.2 255.255.255.252
+no shutdown
+exit
+
+interface gigabitethernet0/1
+nameif branch-side
+security-level 25
+ip address 192.168.100.5 255.255.255.252
+no shutdown
+exit
+
+
+#Step 3 — Allow Branch → HQ traffic
+object network EMPLOYEES
+subnet 10.2.32.0 255.255.224.0
+exit
+
+object network ATM1
+subnet 10.2.64.0 255.255.224.0
+exit
+
+object network ATM2
+subnet 10.2.96.0 255.255.224.0
+exit
+
+object network DHCP_SERVER
+host 10.1.64.2
+exit
+
+object network DNS_SERVER
+host 10.1.64.3
+exit
+
+object network FTP_SERVER
+host 10.1.64.4
+exit
+
+object network DB_SERVER
+host 10.1.32.2
+exit
+
+object network ADMIN_NET
+subnet 10.1.96.0 255.255.224.0
+exit
+
+
+
+#Step 4 — Write the access rules
+access-list BRANCH_TO_HQ extended permit udp object EMPLOYEES object DHCP_SERVER eq 67
+access-list BRANCH_TO_HQ extended permit udp object EMPLOYEES object DHCP_SERVER eq 68
+access-list BRANCH_TO_HQ extended permit udp object EMPLOYEES object DNS_SERVER eq 53
+access-list BRANCH_TO_HQ extended permit tcp object EMPLOYEES object DNS_SERVER eq 53
+access-list BRANCH_TO_HQ extended permit tcp object EMPLOYEES object FTP_SERVER eq 21
+access-list BRANCH_TO_HQ extended permit tcp object EMPLOYEES object FTP_SERVER eq 20
+access-list BRANCH_TO_HQ extended permit tcp object EMPLOYEES object DB_SERVER eq 3306
+
+access-list BRANCH_TO_HQ extended permit udp object ATM1 object DHCP_SERVER eq 67
+access-list BRANCH_TO_HQ extended permit udp object ATM1 object DHCP_SERVER eq 68
+access-list BRANCH_TO_HQ extended permit tcp object ATM1 object DB_SERVER eq 3306
+
+access-list BRANCH_TO_HQ extended permit udp object ATM2 object DHCP_SERVER eq 67
+access-list BRANCH_TO_HQ extended permit udp object ATM2 object DHCP_SERVER eq 68
+access-list BRANCH_TO_HQ extended permit tcp object ATM2 object DB_SERVER eq 3306
+
+access-list BRANCH_TO_HQ extended deny ip object EMPLOYEES object ADMIN_NET
+access-list BRANCH_TO_HQ extended deny ip object ATM1 object ADMIN_NET
+access-list BRANCH_TO_HQ extended deny ip object ATM2 object ADMIN_NET
+
+access-list BRANCH_TO_HQ extended deny ip any object ADMIN_NET
+
+
+
+
+#Step 5 — Apply the access list to the interface
+access-group BRANCH_TO_HQ in interface branch-side
+
+
+#Step 6 — Allow HQ → Branch full access
+access-list HQ_TO_BRANCH extended permit ip any any
+access-group HQ_TO_BRANCH in interface hq-side
+
+
+#Step 7 — Add static routes and save
+route hq-side 10.1.32.0 255.255.224.0 192.168.100.1
+route hq-side 10.1.64.0 255.255.224.0 192.168.100.1
+route hq-side 10.1.96.0 255.255.224.0 192.168.100.1
+route branch-side 10.2.32.0 255.255.224.0 192.168.100.6
+route branch-side 10.2.64.0 255.255.224.0 192.168.100.6
+route branch-side 10.2.96.0 255.255.224.0 192.168.100.6
+write memory
+
