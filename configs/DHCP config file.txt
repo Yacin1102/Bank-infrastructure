@@ -1,19 +1,14 @@
-============================================
-DHCP SERVER — 10.1.64.2 — eth0
-============================================
+#DHCP SERVER — 10.1.64.2 — eth0
 
 ip addr add 10.1.64.2/19 dev eth0
 ip route add default via 10.1.64.1
 
 
-============================================
-Step 2 — Install dnsmasq
-============================================
+#Step 2 — Install dnsmasq
+
 apk update && apk add dnsmasq
 
-============================================
-Step 3 — Create the config file
-============================================
+#Step 3 — Create the config file
 
 cat > /etc/dnsmasq.conf << 'EOF'
 interface=eth0
@@ -24,9 +19,7 @@ log-queries
 log-dhcp
 EOF
 
-============================================
-Step 4 — Add the server réservations
-============================================
+#Step 4 — Add the server réservations
 cat >> /etc/dnsmasq.conf << 'EOF'
 dhcp-host=02:42:bd:52:76:00,dhcp-server,10.1.64.2,infinite
 dhcp-host=02:42:65:f2:93:00,ftp-server,10.1.64.4,infinite
@@ -34,9 +27,7 @@ dhcp-host=02:42:fe:ac:cb:00,db-server,10.1.32.2,infinite
 dhcp-host=02:42:40:b6:05:00,dns-server,10.1.64.3,infinite
 EOF
 
-============================================
-Step 5 — Add the dynamic ranges
-============================================
+#Step 5 — Add the dynamic ranges
 cat >> /etc/dnsmasq.conf << 'EOF'
 # VLAN 3 — Admin PCs
 dhcp-range=set:vlan3,10.1.96.2,10.1.96.254,255.255.224.0,24h
@@ -60,8 +51,6 @@ dhcp-option=tag:vlan6,option:dns-server,10.1.64.3
 EOF
 
 
-============================================
-test
-============================================
+#test
 dnsmasq --test
 dnsmasq
