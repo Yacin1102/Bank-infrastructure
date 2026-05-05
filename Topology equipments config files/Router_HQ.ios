@@ -1,58 +1,36 @@
-#Préparation
-en
-conf t
-hostname Router_HQ
-enable secret topologie123
+!Préparation
+hostname {{ inventory_hostname }}
+enable secret {{ password }}
 line console 0
-password topology123
+password {{ password }}
 login
-exit
 line vty 0 4
-password topology123
+password {{ password }}
 login
-exit
 banner motd #prohibited access denied#
 
-
-#e1 (linked to switch main)
-end
-conf t
+!e1 (linked to switch main)
 interface gigabitethernet0/1
 ip address 10.1.0.1 255.255.255.252
 no sh
-exit
 
-
-#e0 (linked to e0 firewall)
-end
-conf t
+!e0 (linked to e0 firewall)
 interface gigabitethernet0/0
 ip address 192.168.100.1 255.255.255.252
 no sh
-exit
 
-
-#e9 (linked to cloud1)
-end
-conf t
+!e9 (linked to cloud_HQ)
 interface gigabitethernet0/9
 ip address 100.100.100.100 255.255.255.255
 no sh
-exit
 
-#routing
-end
-conf t
-
-# HQ subnets (through switch)
+!Static routing
+!HQ subnets (through switch_HQ)
 ip route 10.1.32.0 255.255.224.0 10.1.0.2
 ip route 10.1.64.0 255.255.224.0 10.1.0.2
 ip route 10.1.96.0 255.255.224.0 10.1.0.2
 
-# Branch subnets (through firewall)
+!Branch subnets (through firewall)
 ip route 10.2.32.0 255.255.224.0 192.168.100.2
 ip route 10.2.64.0 255.255.224.0 192.168.100.2
 ip route 10.2.96.0 255.255.224.0 192.168.100.2
-
-
-wr

@@ -96,6 +96,3 @@ named-checkzone hq.local /etc/bind/zones/db.hq.local
 named-checkzone 1.10.in-addr.arpa /etc/bind/zones/db.10.1
 rc-service named start
 rc-update add named
-
-
-
