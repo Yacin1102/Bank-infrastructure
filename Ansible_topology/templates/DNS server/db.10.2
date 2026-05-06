@@ -1,0 +1,18 @@
+#/etc/bind/zones/db.10.1
+#HQ reverse zone
+$TTL 86400
+@   IN  SOA     dns-server.hq.local. admin.hq.local. (
+                2024010101  ; Serial
+                3600        ; Refresh
+                1800        ; Retry
+                604800      ; Expire
+                86400 )     ; Minimum TTL
+
+@       IN  NS      dns-server.hq.local.
+
+1.0     IN  PTR     router-2.branch1.local.
+1.32    IN  PTR     gw-vlan4.branch1.local.
+1.64    IN  PTR     gw-vlan5.branch1.local.
+1.96    IN  PTR     gw-vlan6.branch1.local.
+2.64    IN  PTR     atm1.branch1.local.
+2.96    IN  PTR     atm2.branch1.local.

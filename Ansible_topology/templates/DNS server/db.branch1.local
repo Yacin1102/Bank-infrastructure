@@ -1,0 +1,24 @@
+#/etc/bind/zones/db.branch1.local
+#Branch 1 forward zone
+$TTL 86400
+@   IN  SOA     dns-server.hq.local. admin.hq.local. (
+                2024010101  ; Serial
+                3600        ; Refresh
+                1800        ; Retry
+                604800      ; Expire
+                86400 )     ; Minimum TTL
+
+; Name servers
+@       IN  NS      dns-server.hq.local.
+
+; Branch 1 Gateways
+gw-vlan4        IN  A   10.2.32.1
+gw-vlan5        IN  A   10.2.64.1
+gw-vlan6        IN  A   10.2.96.1
+
+; Branch 1 Router
+router-2        IN  A   10.2.0.1
+
+; Branch 1 ATMs
+atm1            IN  A   10.2.64.2
+atm2            IN  A   10.2.96.2
