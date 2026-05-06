@@ -1,92 +1,61 @@
-#Préparation
-en
-conf t
+!Préparation
 ip routing
-banner motd #prohibited access denied#
-hostname Switch_Branch
-enable secret topologie123
+hostname {{ inventory_hostname }}
+enable secret {{ password }}
 line console 0
-password topology123
+password {{ password }}
 login
-exit
 line vty 0 4
-password topology 123
+password {{ password }}
 login
-exit
+banner motd #prohibited access denied#
 
-
-
-#Préparation des vlan et leurs IPs
-#vlan 4 (Employees)
-conf t
+!Préparation des vlan et leurs IPs
+!vlan 4 (Employees)
 vlan 4
 name Emps
-exit
 interface range gigabitethernet0/2-3
 switchport mode access
 switchport access vlan 4
 no sh
-exit
 interface gigabitethernet1/0
 switchport mode access
 switchport access vlan 4
 no sh
-exit
 interface vlan 4
 ip address 10.2.32.1 255.255.224.0
 ip helper-address 10.1.64.2
 no sh
 
-
-
-#vlan 5 (ATM1)
-conf t
+!vlan 5 (ATM1)
 vlan 5
 name ATM1
-exit
 interface gigabitethernet0/0
 switchport mode access
 switchport access vlan 5
 no sh
-exit
 interface vlan 5
 ip address 10.2.64.1 255.255.224.0
 ip helper-address 10.1.64.2
 no sh
-exit
 
-
-
-#vlan 6 (ATM2)
-conf t
+!vlan 6 (ATM2)
 vlan 6
 name ATM2
-exit
 interface range gigabitethernet0/1
 switchport mode access
 switchport access vlan 6
 no sh
-exit
 interface vlan 6
 ip address 10.2.96.1 255.255.224.0
 ip helper-address 10.1.64.2
 no sh
-exit
 
-
-
-
-#interface e9 (linking to the router)
-conf t
+!interface e9 (linking to the router)
 interface gigabitethernet0/0
 no switchport
 ip address 10.2.0.2 255.255.255.252
 no sh
 
-
-#global default-route
-end
-conf t
+!global default-route
 ip route 0.0.0.0 0.0.0.0 10.1.0.1
-end
-wr
