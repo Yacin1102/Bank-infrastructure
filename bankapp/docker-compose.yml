@@ -1,0 +1,88 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bankapp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-bankdb}
+      POSTGRES_USER:     ${DB_USER:-bankuser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ChangeMe!}
+      PGDATA:            /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [banknet]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bankuser} -d ${DB_NAME:-bankdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build: { context: ./backend, dockerfile: Dockerfile }
+    container_name: bankapp-api
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      NODE_ENV:              production
+      PORT:                  3001
+      DB_HOST:               postgres
+      DB_PORT:               5432
+      DB_NAME:               ${DB_NAME:-bankdb}
+      DB_USER:               ${DB_USER:-bankuser}
+      DB_PASSWORD:           ${DB_PASSWORD:-ChangeMe!}
+      JWT_SECRET:            ${JWT_SECRET:-CHANGE_ME_PLEASE_USE_openssl_rand_base64_64}
+      JWT_REFRESH_SECRET:    ${JWT_REFRESH_SECRET:-CHANGE_ME_ALSO_PLEASE}
+      JWT_EXPIRES_IN:        15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      BCRYPT_ROUNDS:         12
+      ALLOWED_ORIGINS:       ${ALLOWED_ORIGINS:-http://localhost}
+      LOG_LEVEL:             info
+      DB_SSL:                'false'
+    volumes:
+      - api_logs:/app/logs
+    networks: [banknet]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api/v1
+    container_name: bankapp-ui
+    restart: unless-stopped
+    networks: [banknet]
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: bankapp-proxy
+    restart: unless-stopped
+    depends_on: [backend, frontend]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./infrastructure/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks: [banknet]
+
+volumes:
+  db_data:
+  api_logs:
+  nginx_logs:
+
+networks:
+  banknet:
+    driver: bridge
