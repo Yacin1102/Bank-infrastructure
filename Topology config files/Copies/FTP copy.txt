@@ -1,8 +1,6 @@
 #Step 1 — Install vsftpd
 apk update && apk add vsftpd
 
-
-
 #Step 2 — Write the vsftpd config
 cat > /etc/vsftpd/vsftpd.conf << 'EOF'
 # Basic settings
